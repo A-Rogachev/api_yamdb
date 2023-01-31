@@ -6,8 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from .permissions import IsAdmin
 from .serializers import UserSerializer
-
-User = get_user_model()
+from reviews.models import User
 
 
 class UserViewSet(ModelViewSet):
