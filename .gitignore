@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+﻿# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -145,6 +145,10 @@ dmypy.json
 
 .mypy_cache
 
-# папки со статикой и медиа
+# folders with static and mediafiles
 media/
+
+# sent_emails for registration
+api_yamdb/sent_emails/
+
 
