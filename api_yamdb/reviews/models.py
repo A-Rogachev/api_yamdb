@@ -3,10 +3,11 @@ from django.db import models
 from .validators import validate_year
 
 
-class Categories(models.Model):
+class Category(models.Model):
     """Модель категории один к одному"""
     name = models.CharField(
         'Название категории',
+        unique=True,
         max_length=256
     )
     slug = models.SlugField(
@@ -15,10 +16,11 @@ class Categories(models.Model):
         unique=True
     )
 
-class Genres(models.Model):
+class Genre(models.Model):
     """Модель жанры один ко многим"""
     name = models.CharField(
         'Название жанра',
+        unique=True,
         max_length=256
     )
     slug = models.SlugField(
@@ -27,7 +29,7 @@ class Genres(models.Model):
         unique=True
     )
 
-class Titles(models.Model):
+class Title(models.Model):
     """Основная модель"""
     name = models.CharField(
         'Название',
@@ -40,15 +42,25 @@ class Titles(models.Model):
     description = models.TextField(
         'Описание'
     )
-    ganre = models.ForeignKey(
-        Genres,
-        on_delete=models.SET_NULL,
+    genre = models.ManyToManyField(
+        Genre,
+        through='TitleGenre',
         related_name = 'titles',
         null=True
     )
     category = models.OneToOneField(
-        Categories,
+        Category,
         on_delete=models.SET_NULL,
         related_name = 'titles',
         null=True
     )
+
+class TitleGenre(models.Model):
+        genre = models.ForeignKey(
+            Genre, 
+            on_delete=models.SET_NULL
+        )
+        title = models.ForeignKey(
+            Title, 
+            on_delete=models.SET_NULL
+        )

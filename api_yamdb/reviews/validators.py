@@ -9,4 +9,4 @@ def validate_year(year):
     не наступил, поднимается исключение."""
     dt_now = datetime.now()
     if year > dt_now.year:
-        raise ValidationError(f'Неверно указан год выпуска')
+        raise ValidationError(f'Неверно указан год выпуска: {year}')
