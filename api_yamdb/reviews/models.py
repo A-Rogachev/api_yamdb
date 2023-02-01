@@ -2,6 +2,9 @@ from django.contrib.auth.models import AbstractUser, User
 from django.db import models
 
 
+LIMIT_USERNAME_LENGTH: int = 150
+
+
 class User(AbstractUser):
     """Модель пользователя."""
 
