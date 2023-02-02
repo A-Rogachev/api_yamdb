@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.http import Http404
 from django.core.mail import send_mail
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
@@ -35,27 +36,30 @@ def signup(request) -> Response:
         username: str = serializer.validated_data['username']
         email: str = serializer.validated_data['email']
 
-        if User.objects.filter(username=username).exists():
-            return Response(
-                "Пользователь с таким именем уже существует!",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         try:
-            new_user: User = User.objects.create_user(
+            user: User = get_object_or_404(
+                User,
                 username=username,
                 email=email,
             )
-        except IntegrityError:
-            return Response(
-                "Нельзя использовать данный электронный адрес!",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        confirm_code: str = default_token_generator.make_token(new_user)
+        except Http404:
+            try:
+                user: User = User.objects.create_user(
+                    username=username,
+                    email=email,
+                )
+            except IntegrityError:
+                return Response(
+                    "Нельзя использовать данный электронный адрес!",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        confirm_code: str = default_token_generator.make_token(user)
         send_mail(
-            'YaMDb → подтверждение регистрации.',
+            'YaMDb: подтверждение регистрации.',
             f'Код для подтверждения регистрации: {confirm_code}',
             'yamdb_service@ya.ru',
-            [new_user.email, ],
+            [user.email, ],
             fail_silently=False,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)

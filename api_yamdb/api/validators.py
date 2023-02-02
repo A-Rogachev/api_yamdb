@@ -8,7 +8,6 @@ class CorrectUsernameValidator:
     """Проверка на корректное имя для пользователя."""
 
     MESSAGE_ERR_COMMON = 'Ошибка в имени пользователя'
-    MESSAGE_ERR_LEN: str = 'Максимальная длина имени пользователя → {}!'
     MESSAGE_ERR_SYMBOLS: str = (
         'Имя пользователя должно состоять из символов {}!'
     )
@@ -16,31 +15,18 @@ class CorrectUsernameValidator:
         'Имя {} входит в список запрещенных для регистрации: {}'
     )
 
-    username_length: int = 150
     re_pattern: str = r'^[\w.@+-]+$'
     requires_context = True
 
     def __init__(self,
                 username_field: str,
-                username_length: Optional[int]=None,
                 re_pattern: Optional[str]=None,
                 forbidden_names: Optional[List[str]]=None,
                 ) -> None:
 
         self.username_field: str = username_field
-        self.username_length: int = username_length or self.username_length
         self.re_pattern: str = re_pattern or self.re_pattern
         self.forbidden_names: Optional[List[str]] = forbidden_names
-
-    def check_username_length(self, username: str) -> None:
-        """Проверяем длину имени пользователя."""
-        if len(username) > self.username_length:
-            raise serializers.ValidationError(
-                {
-                    self.MESSAGE_ERR_COMMON:
-                    f'{self.MESSAGE_ERR_LEN.format(self.username_length)}'
-                }
-            )
 
     def check_username_symbols(self, username: str) -> None:
         """Проверяем на корректные символы в имени пользователя."""
@@ -68,8 +54,6 @@ class CorrectUsernameValidator:
 
     def __call__(self, attrs, serializer):
         new_username: str = attrs.get(self.username_field)
-
-        self.check_username_length(new_username)
         self.check_username_symbols(new_username)
         self.check_forbidden_names(new_username)
 
