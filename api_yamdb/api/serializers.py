@@ -27,8 +27,8 @@ class SignUpSerializer(serializers.Serializer):
 
     validators = [
         CorrectUsernameValidator(
-            fields=['username'],
-            message='Некорректное имя пользователя!',
+            username_field='username',
+            forbidden_names=['me', 'Me']
         ),
     ]
 
