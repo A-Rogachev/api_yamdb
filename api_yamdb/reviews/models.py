@@ -105,3 +105,43 @@ class TitleGenre(models.Model):
             Title, 
             on_delete=models.SET_NULL
         )
+
+
+class Review(models.Model):
+
+    class ScoreChoice(models.IntegerChoices):
+        TERRIBLE = 1
+        WILDLY = 2
+        NIGHTMATE = 3
+        BLOODCURDLING = 4
+        POORLY = 5
+        NO_BAD = 6
+        FINE = 7
+        GOOD = 8
+        GREAT = 9
+        PERFECT = 10
+
+    text = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="reviews"
+    )
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE, related_name="reviews"
+    )
+    score = models.IntegerField(choices=ScoreChoice.choices)
+    pub_date = models.DateTimeField(
+        "Дата добавления", auto_now_add=True, db_index=True
+    )
+
+
+class Comment(models.Model):
+    text = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="comments"
+    )
+    pub_date = models.DateTimeField(
+        "Дата добавления", auto_now_add=True, db_index=True
+    )
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name="comments"
+    )

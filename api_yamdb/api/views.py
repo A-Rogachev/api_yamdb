@@ -2,16 +2,17 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .permissions import IsAdmin
-from .serializers import SignUpSerializer, TokenSerializer, UserSerializer
-from reviews.models import User
+from .permissions import IsAdmin, IsAuthorOrReadOnly
+from .serializers import (SignUpSerializer, TokenSerializer, UserSerializer,
+                          ReviewSerializer, CommentsSerializer)
+from reviews.models import User, Review
 
 
 class UserViewSet(ModelViewSet):
@@ -82,3 +83,30 @@ def get_jwt_token(request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthorOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(self.request.user)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentsSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly)
+
+    def get_review_id(self):
+        review = get_object_or_404(
+            Review, pk=self.kwargs.get('review_id')
+        )
+        return review
+
+    def get_queryset(self):
+        review = self.get_review_id()
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        review = self.get_review_id()
+        serializer.save(author=self.request.user, review=review)
