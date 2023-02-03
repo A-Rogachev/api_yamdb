@@ -1,67 +1,73 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.utils import IntegrityError
+from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import IsAdmin, IsAuthorOrReadOnly
-from .serializers import (SignUpSerializer, TokenSerializer, UserSerializer,
-                          ReviewSerializer, CommentsSerializer)
-from reviews.models import User, Review
+from .serializers import (CommentsSerializer, ReviewSerializer,
+                          SignUpSerializer, TokenSerializer,
+                          UserProfileSerializer, UserSerializer)
+from reviews.models import Review, User
 
 
 class UserViewSet(ModelViewSet):
     """Вьюсет для работы с моделью User (пользователь)."""
 
+    http_method_names = ['get', 'post', 'head', 'patch', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
     permission_classes = (IsAdmin, )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('username', )
 
 
-@api_view(["POST"])
-@permission_classes([permissions.AllowAny, ])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def signup(request) -> Response:
     """Регистрация нового пользователя."""
     serializer = SignUpSerializer(data=request.data)
     if serializer.is_valid():
         username: str = serializer.validated_data['username']
         email: str = serializer.validated_data['email']
-
-        if User.objects.filter(username=username).exists():
-            return Response(
-                "Пользователь с таким именем уже существует!",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         try:
-            new_user: User = User.objects.create_user(
+            user: User = get_object_or_404(
+                User,
                 username=username,
                 email=email,
             )
-        except IntegrityError:
-            return Response(
-                "Нельзя использовать данный электронный адрес!",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        confirm_code: str = default_token_generator.make_token(new_user)
+        except Http404:
+            try:
+                user: User = User.objects.create_user(
+                    username=username,
+                    email=email,
+                )
+            except IntegrityError:
+                return Response(
+                    'Нельзя использовать данный электронный адрес!',
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        confirm_code: str = default_token_generator.make_token(user)
         send_mail(
-            'YaMDb → подтверждение регистрации.',
+            'YaMDb: подтверждение регистрации.',
             f'Код для подтверждения регистрации: {confirm_code}',
             'yamdb_service@ya.ru',
-            [new_user.email, ],
+            [user.email, ],
             fail_silently=False,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["POST"])
-@permission_classes([permissions.AllowAny, ])
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def get_jwt_token(request) -> Response:
     """Получение JWT-токена."""
     serializer = TokenSerializer(data=request.data)
@@ -73,15 +79,34 @@ def get_jwt_token(request) -> Response:
         if default_token_generator.check_token(user, confirm_code):
             new_token: str = str(RefreshToken.for_user(user).access_token)
             return Response(
-                {
-                    'token': new_token,
-                },
+                {'token': new_token, },
                 status=status.HTTP_200_OK,
             )
         return Response(
-            'Ошибка кода подтвеждения. Попробуйте еще раз.',
+            'Ошибка получения кода подтверждения. Попробуйте еще раз.',
             status=status.HTTP_400_BAD_REQUEST,
         )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def user_profile(request) -> Response:
+    """Персональная страница пользователя"""
+    current_user: User = request.user
+
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(current_user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    serializer = UserProfileSerializer(
+        current_user,
+        data=request.data,
+        partial=True,
+    )
+    if serializer.is_valid():
+        serializer.save(role=current_user.role)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -95,7 +120,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly)
 
     def get_review_id(self):
         review = get_object_or_404(

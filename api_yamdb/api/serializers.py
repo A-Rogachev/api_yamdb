@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from reviews.models import Title, Review, Comment
+from rest_framework.fields import CharField, EmailField
 from rest_framework.validators import UniqueTogetherValidator
+
+from .validators import CorrectUsernameValidator
+from reviews.models import LIMIT_USERNAME_LENGTH, Comment, Review, Title, User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -58,11 +61,25 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class UserProfileSerializer(UserSerializer):
+    """Сериализатор для личной страницы пользователя."""
+
+    class Meta(UserSerializer.Meta):
+        read_only_fields = ('role', )
+
+
 class SignUpSerializer(serializers.Serializer):
     """Регистрация нового пользователя."""
 
     username = CharField(max_length=LIMIT_USERNAME_LENGTH, required=True)
     email = EmailField(max_length=254, required=True)
+
+    validators = [
+        CorrectUsernameValidator(
+            username_field='username',
+            forbidden_names=['me', 'Me']
+        ),
+    ]
 
 
 class TokenSerializer(serializers.Serializer):

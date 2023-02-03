@@ -22,4 +22,8 @@ class IsAdmin(permissions.BasePermission):
 
     def has_permission(self, request, view):
         "Запрос разрешен только для администратора."
-        return request.user.is_authenticated and request.user.role == 'admin'
+        return (
+            request.user.is_authenticated
+            and request.user.role == 'admin'
+            or request.user.is_staff
+        )
