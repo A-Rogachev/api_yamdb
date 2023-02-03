@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField, EmailField
-from reviews.models import LIMIT_USERNAME_LENGTH, User
+from rest_framework.validators import UniqueTogetherValidator
 
 from .validators import CorrectUsernameValidator
+from reviews.models import LIMIT_USERNAME_LENGTH, Comment, Review, Title, User
+
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User (пользователь)."""
@@ -45,3 +47,41 @@ class TokenSerializer(serializers.Serializer):
 
     username = CharField(max_length=LIMIT_USERNAME_LENGTH, required=True)
     confirmation_code = CharField(required=True)
+
+
+class ReviewsSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
+
+    class Meta:
+        model = Review
+        fields = (
+            'id',
+            'text',
+            'author',
+            'score',
+            'pub_date',
+        )
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Title.objects.all(),
+                fields=['user', 'title'],
+                message='Вы уже оставляли отзыв.',
+            )
+        ]
+
+
+class CommentsSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
+
+    class Meta:
+        model = Comment
+        fields = (
+            'id',
+            'text',
+            'author',
+            'pub_date',
+        )

@@ -18,11 +18,12 @@ class CorrectUsernameValidator:
     re_pattern: str = r'^[\w.@+-]+$'
     requires_context = True
 
-    def __init__(self,
-                username_field: str,
-                re_pattern: Optional[str]=None,
-                forbidden_names: Optional[List[str]]=None,
-                ) -> None:
+    def __init__(
+        self,
+        username_field: str,
+        re_pattern: Optional[str] = None,
+        forbidden_names: Optional[List[str]] = None,
+    ) -> None:
 
         self.username_field: str = username_field
         self.re_pattern: str = re_pattern or self.re_pattern
@@ -31,7 +32,7 @@ class CorrectUsernameValidator:
     def check_username_symbols(self, username: str) -> None:
         """Проверяем на корректные символы в имени пользователя."""
         regexp: re.Pattern = re.compile(self.re_pattern)
-        if not regexp.search(username): 
+        if not regexp.search(username):
             raise serializers.ValidationError(
                 {
                     self.MESSAGE_ERR_COMMON:
@@ -45,10 +46,15 @@ class CorrectUsernameValidator:
             if username.lower() in [
                 name.lower() for name in self.forbidden_names
             ]:
+                username, self.forbidden_names
                 raise serializers.ValidationError(
                     {
-                        self.MESSAGE_ERR_COMMON:
-                        f'{self.MESSAGE_FORBIDDEN_NAME.format(username, self.forbidden_names)}'
+                        self.MESSAGE_ERR_COMMON: (
+                            self.MESSAGE_FORBIDDEN_NAME.format(
+                                username,
+                                self.forbidden_names,
+                            )
+                        )
                     }
                 )
 

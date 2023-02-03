@@ -36,7 +36,6 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
         ordering = ('username', )
 
-
     def __str__(self) -> str:
         """Строковое представления пользователя."""
         return f'{self.username} ({self.role})'

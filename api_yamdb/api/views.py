@@ -25,7 +25,7 @@ class UserViewSet(ModelViewSet):
     lookup_field = 'username'
     permission_classes = (IsAdmin, )
     filter_backends = (filters.SearchFilter, )
-    search_fields = ('username', ) 
+    search_fields = ('username', )
 
 
 @api_view(['POST'])
@@ -50,7 +50,7 @@ def signup(request) -> Response:
                 )
             except IntegrityError:
                 return Response(
-                    "Нельзя использовать данный электронный адрес!",
+                    'Нельзя использовать данный электронный адрес!',
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         confirm_code: str = default_token_generator.make_token(user)
