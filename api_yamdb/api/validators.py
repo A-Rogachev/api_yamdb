@@ -48,7 +48,7 @@ class CorrectUsernameValidator:
                 raise serializers.ValidationError(
                     {
                         self.MESSAGE_ERR_COMMON:
-                        f'{self.MESSAGE_ERR_SYMBOLS.format(self.re_pattern)}'
+                        f'{self.MESSAGE_FORBIDDEN_NAME.format(username, self.forbidden_names)}'
                     }
                 )
 
@@ -61,7 +61,6 @@ class CorrectUsernameValidator:
         return (
             f'<{self.__class__.__name__} '
             f'(username_field="{self.username_field}", '
-            f'username_length={self.username_length}, '
             f're_pattern="{self.re_pattern}", '
             f'forbidden_names={self.forbidden_names})>'
         )
