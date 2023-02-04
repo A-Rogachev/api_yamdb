@@ -32,6 +32,25 @@ class User(AbstractUser):
         default=UserRoles.USER,
     )
 
+    @property
+    def is_admin(self):
+        """Пользователь имеет права администратора."""
+        return (
+            self.role == self.UserRoles.ADMIN
+            or self.is_staff
+            or self.is_superuser
+        )
+
+    @property
+    def is_moderator(self):
+        """Пользователь имеет права модератора."""
+        return self.role == self.UserRoles.MODERATOR
+
+    @property
+    def is_user(self):
+        """Пользователь является обычным пользователем."""
+        return self.role == self.UserRoles.USER
+
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
@@ -55,6 +74,13 @@ class Category(models.Model):
         unique=True
     )
 
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
+    def __str__(self):
+        return self.name
+
 
 class Genre(models.Model):
     """Модель жанры один ко многим"""
@@ -68,6 +94,13 @@ class Genre(models.Model):
         max_length=50,
         unique=True
     )
+
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
@@ -86,28 +119,35 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre,
         through='TitleGenre',
-        related_name = 'titles',
+        related_name='titles',
         null=True
     )
     category = models.OneToOneField(
         Category,
         on_delete=models.SET_NULL,
-        related_name = 'titles',
+        related_name='titles',
         null=True
     )
 
+    class Meta:
+        verbose_name = 'Произведения'
+        verbose_name_plural = 'Произведения'
+
+    def __str__(self):
+        return self.name
+
 
 class TitleGenre(models.Model):
-        genre = models.ForeignKey(
-            Genre, 
-            on_delete=models.SET_NULL,
-            null=True,
-        )
-        title = models.ForeignKey(
-            Title, 
-            on_delete=models.SET_NULL,
-            null=True,
-        )
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.SET_NULL,
+        null=True
+    )
 
 
 class Review(models.Model):

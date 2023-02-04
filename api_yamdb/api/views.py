@@ -3,18 +3,24 @@ from django.core.mail import send_mail
 from django.db.utils import IntegrityError
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
+from reviews.models import Category, Genre, Review, Title, User
 
-from .permissions import IsAdmin, IsAuthorOrReadOnly
-from .serializers import (CommentsSerializer, ReviewSerializer,
-                          SignUpSerializer, TokenSerializer,
-                          UserProfileSerializer, UserSerializer)
-from reviews.models import Review, User
+from .filters import TitleFilter
+from .mixins import CLDViewSet
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
+from .serializers import (CategorySerializer, CommentsSerializer,
+                          GenreSerializer, ReviewSerializer, SignUpSerializer,
+                          TitleCreateSerializer, TitleReadOnlySerializer,
+                          TokenSerializer, UserProfileSerializer,
+                          UserSerializer)
 
 
 class UserViewSet(ModelViewSet):
@@ -92,7 +98,7 @@ def get_jwt_token(request) -> Response:
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def user_profile(request) -> Response:
-    """Персональная страница пользователя"""
+    """Персональная страница пользователя."""
     current_user: User = request.user
 
     if request.method == 'GET':
@@ -110,7 +116,47 @@ def user_profile(request) -> Response:
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class CategoryViewsSet(CLDViewSet):
+    """Получить категории - без токена. Создать категорию - администратор."""
+
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    pagination_class = PageNumberPagination
+    permission_classes = (IsAdminOrReadOnly,)
+    lookup_field = 'slug'
+
+
+class GenreViewsSet(CLDViewSet):
+    """Получить жанры - без токена. Создать жанр - администратор."""
+
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name', )
+    pagination_class = PageNumberPagination
+    permission_classes = (IsAdminOrReadOnly,)
+    lookup_field = 'slug'
+
+
+class TitleCreateViewsSet(ModelViewSet):
+    """Получить объекты - без токена. Создать запись - администратор."""
+
+    queryset = Title.objects.all()
+    serializer_class = TitleCreateSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+    pagination_class = PageNumberPagination
+    permission_classes = (IsAdminOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action == list:
+            return TitleReadOnlySerializer
+        return TitleCreateViewsSet
+
+
+class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
@@ -118,7 +164,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(self.request.user)
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(ModelViewSet):
     serializer_class = CommentsSerializer
 
     def get_review_id(self):
