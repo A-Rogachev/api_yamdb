@@ -22,8 +22,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api.apps.ApiConfig',
-    'reviews.apps.ReviewsConfig',
     'rest_framework',
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
@@ -132,3 +130,5 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

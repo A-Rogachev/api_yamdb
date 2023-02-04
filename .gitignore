@@ -149,6 +149,6 @@ dmypy.json
 media/
 
 # sent_emails for registration
-api_yamdb/sent_emails/
+api_yamdb/sent_emails/*
 
 
