@@ -150,10 +150,11 @@ class TitleCreateViewsSet(ModelViewSet):
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
 
+
     def get_serializer_class(self):
-        if self.action == list:
+        if self.action == list or self.action == 'retrieve':
             return TitleReadOnlySerializer
-        return TitleCreateViewsSet
+        return TitleCreateSerializer
 
 
 class ReviewViewSet(ModelViewSet):

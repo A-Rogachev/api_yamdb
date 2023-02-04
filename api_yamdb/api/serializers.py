@@ -73,10 +73,10 @@ class GenreSerializer(serializers.ModelSerializer):
         )
 
 
-class TitleReadOnlySerializer(serializers.Serializer):
+class TitleReadOnlySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title. Получение информации о произведении."""
     category = CategorySerializer()
-    genre = GenreSerializer(many=False)
+    genre = GenreSerializer(many=True)
     rating = serializers.IntegerField(
         read_only=True
     )
@@ -90,6 +90,7 @@ class TitleReadOnlySerializer(serializers.Serializer):
             'id',
             'name',
             'year',
+            'rating',
             'description',
             'genre',
             'category',
@@ -98,20 +99,22 @@ class TitleReadOnlySerializer(serializers.Serializer):
             'id',
             'name',
             'year',
+            'rating',
             'description',
             'genre',
             'category',
         )
 
 
-class TitleCreateSerializer(serializers.Serializer):
+class TitleCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title. Создание записи о произведении."""
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all()
     )
+    
     genre = serializers.SlugRelatedField(
-        many=False,
+        many=True,
         slug_field='slug',
         queryset=Genre.objects.all()
     )
