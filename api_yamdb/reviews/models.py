@@ -118,13 +118,14 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(
         Genre,
-        through='TitleGenre',
+        # through='TitleGenre',
         related_name='titles',
-        null=True
+        verbose_name='Жанр',
     )
 
     category = models.ForeignKey(
         Category,
+        verbose_name='Категория',
         related_name='titles',
         on_delete=models.SET_NULL,
         null=True,
@@ -138,17 +139,17 @@ class Title(models.Model):
         return self.name
 
 
-class TitleGenre(models.Model):
-    genre = models.ForeignKey(
-        Genre,
-        on_delete=models.SET_NULL,
-        null=True
-    )
-    title = models.ForeignKey(
-        Title,
-        on_delete=models.SET_NULL,
-        null=True
-    )
+# class TitleGenre(models.Model):
+#     genre = models.ForeignKey(
+#         Genre,
+#         on_delete=models.SET_NULL,
+#         null=True
+#     )
+#     title = models.ForeignKey(
+#         Title,
+#         on_delete=models.SET_NULL,
+#         null=True
+#     )
 
 
 class Review(models.Model):
