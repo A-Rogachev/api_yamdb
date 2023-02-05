@@ -15,6 +15,7 @@ from reviews.models import Category, Genre, Review, Title, User
 
 from .filters import TitleFilter
 from .mixins import CLDViewSet
+from .pagination import UsersPagination
 from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentsSerializer,
                           GenreSerializer, ReviewSerializer, SignUpSerializer,
@@ -33,6 +34,7 @@ class UserViewSet(ModelViewSet):
     permission_classes = (IsAdmin, )
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username', )
+    pagination_class = PageNumberPagination
 
 
 @api_view(['POST'])
@@ -123,7 +125,6 @@ class CategoryViewsSet(CLDViewSet):
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
     lookup_field = 'slug'
 
@@ -135,7 +136,6 @@ class GenreViewsSet(CLDViewSet):
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name', )
-    pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
     lookup_field = 'slug'
 
@@ -147,7 +147,6 @@ class TitleCreateViewsSet(ModelViewSet):
     serializer_class = TitleCreateSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
 
 
