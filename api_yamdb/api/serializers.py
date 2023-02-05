@@ -135,17 +135,21 @@ class ReviewsSerializer(serializers.ModelSerializer):
         read_only=True, slug_field='username'
     )
 
+    title = serializers.SlugRelatedField(
+        read_only=True, slug_field='name'
+    )
+
     class Meta:
         model = Review
         fields = '__all__'
-        read_only_fields = ('author', 'title')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Title.objects.all(),
-                fields=['author', 'title'],
-                message='Вы уже оставляли отзыв.',
-            )
-        ]
+
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Review.objects.all(),
+        #         fields=['author', 'title'],
+        #         message='Вы уже оставляли отзыв.',
+        #     )
+        # ]
 
 
 class CommentsSerializer(serializers.ModelSerializer):

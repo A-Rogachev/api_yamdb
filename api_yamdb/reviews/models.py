@@ -173,7 +173,10 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name="reviews",
     )
-    score = models.IntegerField(choices=ScoreChoice.choices)
+    score = models.IntegerField(
+        choices=ScoreChoice.choices,
+        default=ScoreChoice.TERRIBLE,
+    )
     pub_date = models.DateTimeField(
         "Дата добавления", auto_now_add=True, db_index=True
     )

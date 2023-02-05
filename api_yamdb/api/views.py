@@ -157,7 +157,7 @@ class TitleCreateViewsSet(ModelViewSet):
 
 class ReviewViewSet(ModelViewSet):
     """Класс представления ревью."""
-    http_method_names = ['get', 'post', 'patch', 'delete']
+
     serializer_class = ReviewsSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
@@ -175,23 +175,13 @@ class ReviewViewSet(ModelViewSet):
             title=self.requested_title,
             author=self.request.user,
         )
-    # def title_id(self):
-    #     title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-    #     return title
-
-    # def get_queryset(self):
-    #     title = self.get_title_id()
-    #     return title.reviews.all()
-
-    # def perform_create(self, serializer):
-    #     title = self.get_title_id()
-    #     serializer.save(title_id=title, author=self.request.user)
 
 
 class CommentViewSet(ModelViewSet):
     """Класс представления комментариев."""
 
     serializer_class = CommentsSerializer
+    permission_classes = (IsAuthorOrReadOnly, )
 
     def get_review_id(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
