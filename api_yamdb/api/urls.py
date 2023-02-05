@@ -10,7 +10,11 @@ v1_router.register('users', UserViewSet)
 v1_router.register('categories', CategoryViewsSet, basename='categories')
 v1_router.register('genres', GenreViewsSet, basename='genres')
 v1_router.register('titles', TitleCreateViewsSet, basename='titles')
-v1_router.register('reviews', ReviewViewSet, basename='reviews')
+v1_router.register(
+    r'titles/(?P<title_id>\d+)/reviews',
+    ReviewViewSet,
+    basename='reviews',
+)
 v1_router.register('comments', CommentViewSet, basename='comments')
 
 urlpatterns = [

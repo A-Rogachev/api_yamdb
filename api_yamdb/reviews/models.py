@@ -171,7 +171,7 @@ class Review(models.Model):
         User, on_delete=models.CASCADE, related_name="reviews"
     )
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name="reviews"
+        Title, on_delete=models.CASCADE, related_name="reviews",
     )
     score = models.IntegerField(choices=ScoreChoice.choices)
     pub_date = models.DateTimeField(

@@ -17,7 +17,7 @@ from .filters import TitleFilter
 from .mixins import CLDViewSet
 from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentsSerializer,
-                          GenreSerializer, ReviewSerializer, SignUpSerializer,
+                          GenreSerializer, ReviewsSerializer, SignUpSerializer,
                           TitleCreateSerializer, TitleReadOnlySerializer,
                           TokenSerializer, UserProfileSerializer,
                           UserSerializer)
@@ -156,20 +156,45 @@ class TitleCreateViewsSet(ModelViewSet):
 
 
 class ReviewViewSet(ModelViewSet):
-    serializer_class = ReviewSerializer
+    """Класс представления ревью."""
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    serializer_class = ReviewsSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
+    @property
+    def requested_title(self):
+        return get_object_or_404(
+            Title, pk=self.kwargs.get('title_id'),
+        )
+
+    def get_queryset(self):
+        return self.requested_title.reviews.all()
+
     def perform_create(self, serializer):
-        serializer.save(self.request.user)
+        serializer.save(
+            title=self.requested_title,
+            author=self.request.user,
+        )
+    # def title_id(self):
+    #     title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+    #     return title
+
+    # def get_queryset(self):
+    #     title = self.get_title_id()
+    #     return title.reviews.all()
+
+    # def perform_create(self, serializer):
+    #     title = self.get_title_id()
+    #     serializer.save(title_id=title, author=self.request.user)
 
 
 class CommentViewSet(ModelViewSet):
+    """Класс представления комментариев."""
+
     serializer_class = CommentsSerializer
 
     def get_review_id(self):
-        review = get_object_or_404(
-            Review, pk=self.kwargs.get('review_id')
-        )
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         return review
 
     def get_queryset(self):
@@ -178,4 +203,4 @@ class CommentViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         review = self.get_review_id()
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(review=review, author=self.request.user)
