@@ -120,6 +120,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
+DATA_FILE_PATH = os.path.join(BASE_DIR, 'static\\data\\')
 
 # Email Backend settings
 
