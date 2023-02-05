@@ -143,13 +143,16 @@ class ReviewsSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
 
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Review.objects.all(),
-        #         fields=['author', 'title'],
-        #         message='Вы уже оставляли отзыв.',
-        #     )
-        # ]
+    def validate(self, data):
+        title = self.context['view'].kwargs.get('title_id')
+        author = self.context['view'].request.user
+        if (
+            Review.objects.filter(title=title, author=author).exists()
+            and self.context['view'].request.method == 'POST'
+        ):
+            raise serializers.ValidationError(
+                'Вы уже оставляли отзыв!')
+        return data
 
 
 class CommentsSerializer(serializers.ModelSerializer):
