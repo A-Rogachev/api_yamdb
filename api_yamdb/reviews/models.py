@@ -11,9 +11,9 @@ class User(AbstractUser):
 
     class UserRoles(models.TextChoices):
         """Возможные роли пользователей."""
-        USER = 'user'
-        MODERATOR = 'moderator'
         ADMIN = 'admin'
+        MODERATOR = 'moderator'
+        USER = 'user'
 
     bio = models.TextField(
         'Инф-ия о пользователе',
@@ -122,11 +122,12 @@ class Title(models.Model):
         related_name='titles',
         null=True
     )
-    category = models.OneToOneField(
+
+    category = models.ForeignKey(
         Category,
-        on_delete=models.SET_NULL,
         related_name='titles',
-        null=True
+        on_delete=models.SET_NULL,
+        null=True,
     )
 
     class Meta:

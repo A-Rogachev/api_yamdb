@@ -80,9 +80,9 @@ class TitleReadOnlySerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(
         read_only=True
     )
-    year = serializers.IntegerField(
-        validators=(validate_year,)
-    )
+    # year = serializers.IntegerField(
+    #     validators=(validate_year,)
+    # )
 
     class Meta:
         model = Title
