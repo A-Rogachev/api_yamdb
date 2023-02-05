@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from .validators import validate_year
@@ -11,6 +11,7 @@ class User(AbstractUser):
 
     class UserRoles(models.TextChoices):
         """Возможные роли пользователей."""
+
         ADMIN = 'admin'
         MODERATOR = 'moderator'
         USER = 'user'
@@ -62,7 +63,8 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
-    """Модель категории один к одному"""
+    """Модель категории произведения."""
+
     name = models.CharField(
         'Название категории',
         unique=True,
@@ -79,11 +81,13 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
+        """Строковое представления категории."""
         return self.name
 
 
 class Genre(models.Model):
-    """Модель жанры один ко многим"""
+    """Модель жанра произведения."""
+
     name = models.CharField(
         'Название жанра',
         unique=True,
@@ -100,11 +104,13 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
 
     def __str__(self):
+        """Строковое представления жанра."""
         return self.name
 
 
 class Title(models.Model):
-    """Основная модель"""
+    """Модель произведения."""
+
     name = models.CharField(
         'Название',
         max_length=256
@@ -118,7 +124,6 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(
         Genre,
-        # through='TitleGenre',
         related_name='titles',
         verbose_name='Жанр',
     )
@@ -136,25 +141,16 @@ class Title(models.Model):
         verbose_name_plural = 'Произведения'
 
     def __str__(self):
+        """Строковое представления произведения."""
         return self.name
 
 
-# class TitleGenre(models.Model):
-#     genre = models.ForeignKey(
-#         Genre,
-#         on_delete=models.SET_NULL,
-#         null=True
-#     )
-#     title = models.ForeignKey(
-#         Title,
-#         on_delete=models.SET_NULL,
-#         null=True
-#     )
-
-
 class Review(models.Model):
+    """Модель отзыва на произведение."""
 
     class ScoreChoice(models.IntegerChoices):
+        """Возможные оценки."""
+
         TERRIBLE = 1
         WILDLY = 2
         NIGHTMATE = 3
@@ -168,7 +164,7 @@ class Review(models.Model):
 
     text = models.TextField()
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="reviews"
+        User, on_delete=models.CASCADE, related_name="reviews",
     )
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name="reviews",
@@ -178,26 +174,34 @@ class Review(models.Model):
         default=ScoreChoice.TERRIBLE,
     )
     pub_date = models.DateTimeField(
-        "Дата добавления", auto_now_add=True, db_index=True
+        "Дата добавления", auto_now_add=True, db_index=True,
     )
 
     class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'title'],
-                name='unique_review'
+                name='unique_review',
             ),
         ]
 
 
 class Comment(models.Model):
+    """Модель комментария для отзыва."""
+
     text = models.TextField()
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="comments"
+        User, on_delete=models.CASCADE, related_name="comments",
     )
     pub_date = models.DateTimeField(
-        "Дата добавления", auto_now_add=True, db_index=True
+        "Дата добавления", auto_now_add=True, db_index=True,
     )
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name="comments"
+        Review, on_delete=models.CASCADE, related_name="comments",
     )
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'

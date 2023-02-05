@@ -7,7 +7,7 @@ from rest_framework import serializers
 class CorrectUsernameValidator:
     """Проверка на корректное имя для пользователя."""
 
-    MESSAGE_ERR_COMMON = 'Ошибка в имени пользователя'
+    MESSAGE_ERR_COMMON: str = 'Ошибка в имени пользователя'
     MESSAGE_ERR_SYMBOLS: str = (
         'Имя пользователя должно состоять из символов {}!'
     )
@@ -36,7 +36,7 @@ class CorrectUsernameValidator:
             raise serializers.ValidationError(
                 {
                     self.MESSAGE_ERR_COMMON:
-                    f'{self.MESSAGE_ERR_SYMBOLS.format(self.re_pattern)}'
+                    self.MESSAGE_ERR_SYMBOLS.format(self.re_pattern)
                 }
             )
 
