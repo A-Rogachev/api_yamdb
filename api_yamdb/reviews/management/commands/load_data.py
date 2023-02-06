@@ -15,8 +15,8 @@ data_for_database: Dict[Model, str] = {
     Genre: ('genre.csv', ''),
     User: ('users.csv', ''),
     Title: ('titles.csv', {'category': Category}),
-    Review: ('review.csv', {'title_id': Title, 'author': User}),
-    Comment: ('comments.csv', {'review_id': Review, 'author': User}),
+    Review: ('review.csv', {'author': User}),
+    Comment: ('comments.csv', {'author': User}),
 }
 
 
@@ -31,11 +31,10 @@ class Command(BaseCommand):
                 quotechar='"',
                 skipinitialspace=True,
             )
-            # случай, когда в таблице нет внешних ключей
+            # случай, когда необходимо переопределить значения в аргументах
             if not file_and_args[1]:
                 for row in reader:
                     objects_queue.append(db_model(**row))
-            # случай, когда в таблице есть внешние ключи
             else:
                 for row in reader:
                     data_args: Dict[str, str] = dict(**row)
