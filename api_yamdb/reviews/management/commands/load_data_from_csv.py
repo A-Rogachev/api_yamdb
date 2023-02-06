@@ -1,115 +1,47 @@
+import csv
 import os
+from typing import Dict
 
-import pandas
 from django.conf import settings
 from django.core.management import BaseCommand
+from django.db.models import Model
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
-
-DATA_DIRECTORY = settings.DATA_FILE_PATH
+DATA_DIRECTORY: str = settings.DATA_FILE_PATH
 os.chdir(DATA_DIRECTORY)
 
+data_for_database: Dict[Model, str] = {
+    Category: ('category.csv', ''),
+    Genre: ('genre.csv', ''),
+    User: ('users.csv', ''),
+    Title: ('titles.csv', {'category': Category}),
+    Review: ('review.csv', {'title_id': Title, 'author': User}),
+    Comment: ('comments.csv', {'review_id': Review, 'author': User}),
+}
+
+
 class Command(BaseCommand):
-    help = 'Загружает файлы csv в базу данных.'
-
-    def add_arguments(self, parser):
-        pass
-
     def handle(self, *args, **kwargs):
-
-        # df = pandas.read_csv('category.csv')
-        # for ID, NAME, SLUG in zip(
-        #         df.id,
-        #         df.name,
-        #         df.slug):
-        #     models = Category(
-        #         id=ID,
-        #         name=NAME,
-        #         slug=SLUG)
-        #     models.save()
-
-        # df = pandas.read_csv('genre.csv')
-        # for ID, NAME, SLUG in zip(
-        #         df.id,
-        #         df.name,
-        #         df.slug):
-        #     models = Genre(id=ID, name=NAME, slug=SLUG)
-        #     models.save()
-
-        # df = pandas.read_csv('users.csv')
-        # for ID, USERNAME, EMAIL, ROLE, BIO, FIRST_NAME, LAST_NAME in zip(
-        #     df.id,
-        #     df.username,
-        #     df.email,
-        #     df.role,
-        #     df.bio,
-        #     df.first_name,
-        #     df.last_name
-        # ):
-        #     models = User(
-        #         id=ID,
-        #         username=USERNAME,
-        #         email=EMAIL,
-        #         role=ROLE,
-        #         bio=BIO,
-        #         first_name=FIRST_NAME,
-        #         last_name=LAST_NAME,
-        #     )
-        #     models.save()
-
-        # df = pandas.read_csv('titles.csv')
-        # for ID, YEAR, NAME, CATEGORY in zip(
-        #         df.id,
-        #         df.year,
-        #         df.name,
-        #         df.category):
-        #     models = Title(
-        #         id=ID,
-        #         year=YEAR,
-        #         name=NAME,
-        #         category=Category.objects.get(pk=CATEGORY),
-        #     )
-        #     models.save()
-
-
-        df = pandas.read_csv('review.csv', quotechar='"', doublequote=True)
-
-        # print(df)
-        for ID, TITLE_ID, TEXT, AUTHOR, SCORE, PUB_DATE in zip(
-            df.id,
-            df.title_id,
-            df.text,
-            df.author,
-            df.score,
-            df.pub_date
-        ):
-            models = Review(
-                id=ID,
-                title_id=Title.objects.get(pk=TITLE_ID),
-                text=TEXT,
-                author=User.objects.get(pk=AUTHOR),
-                score=SCORE,
-                pub_date=PUB_DATE
+        for db_model, file_and_args in data_for_database.items():
+            data_file = open(file_and_args[0], 'r', encoding='utf-8')
+            objects_queue = []
+            reader = csv.DictReader(
+                data_file,
+                delimiter=',',
+                quotechar='"',
+                skipinitialspace=True,
             )
-            models.save()
+            # случай, когда в таблице нет внешних ключей
+            if not file_and_args[1]:
+                for row in reader:
+                    objects_queue.append(db_model(**row))
+            # случай, когда в таблице есть внешние ключи
+            else:
+                for row in reader:
+                    data_args: Dict[str, str] = dict(**row)
+                    for key, value in file_and_args[1].items():
+                        data_args[key] = value.objects.get(pk=data_args[key])
+                    objects_queue.append(db_model(**data_args))
 
-
-
-
-
-        # df = pandas.read_csv(r'static/data/comments.csv')
-        # for ID, REVIEW_ID, TEXT, AUTHOR, PUB_DATE in zip(
-        #     df.id,
-        #     df.review_id,
-        #     df.text,
-        #     df.author,
-        #     df.pub_date
-        # ):
-        #     models = Comment(
-        #         id=ID,
-        #         review_id=REVIEW_ID,
-        #         text=TEXT,
-        #         author=AUTHOR,
-        #         pub_date=PUB_DATE)
-
-            
+            db_model.objects.bulk_create(objects_queue)
+            data_file.close()
