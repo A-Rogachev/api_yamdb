@@ -2,7 +2,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.db.utils import IntegrityError
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status
@@ -20,8 +19,7 @@ from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentsSerializer,
                           GenreSerializer, ReviewsSerializer, SignUpSerializer,
                           TitleCreateSerializer, TitleReadOnlySerializer,
-                          TokenSerializer, UserProfileSerializer,
-                          UserSerializer)
+                          TokenSerializer, UserSerializer)
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -47,23 +45,18 @@ def signup(request) -> Response:
     if serializer.is_valid():
         username: str = serializer.validated_data['username']
         email: str = serializer.validated_data['email']
+
         try:
-            user: User = get_object_or_404(
-                User,
+            user, created = User.objects.get_or_create(
                 username=username,
                 email=email,
             )
-        except Http404:
-            try:
-                user: User = User.objects.create_user(
-                    username=username,
-                    email=email,
-                )
-            except IntegrityError:
-                return Response(
-                    'Нельзя использовать данный электронный адрес!',
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        except IntegrityError:
+            return Response(
+                'Нельзя использовать данный электронный адрес!',
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         confirm_code: str = default_token_generator.make_token(user)
         send_mail(
             'YaMDb: подтверждение регистрации.',
@@ -103,20 +96,17 @@ def get_jwt_token(request) -> Response:
 def user_profile(request) -> Response:
     """Персональная страница пользователя."""
     current_user: User = request.user
-
-    if request.method == 'GET':
-        serializer = UserProfileSerializer(current_user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    serializer = UserProfileSerializer(
-        current_user,
-        data=request.data,
-        partial=True,
-    )
-    if serializer.is_valid():
+    if request.method == 'PATCH':
+        serializer = UserSerializer(
+            current_user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
         serializer.save(role=current_user.role)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    serializer = UserSerializer(current_user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoryViewsSet(CLDViewSet):
