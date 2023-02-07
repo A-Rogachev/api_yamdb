@@ -104,7 +104,6 @@ def user_profile(request) -> Response:
         )
         serializer.is_valid(raise_exception=True)
         serializer.save(role=current_user.role)
-        
     serializer = UserSerializer(current_user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 

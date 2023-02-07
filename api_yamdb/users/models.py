@@ -50,6 +50,12 @@ class User(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
         ordering = ('username', )
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(username__in=['me', 'ME', 'Me', 'mE']),
+                name='username_not_me'
+            ),
+        ]
 
     def __str__(self) -> str:
         """Строковое представления пользователя."""

@@ -22,13 +22,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-# class UserProfileSerializer(UserSerializer):
-#     """Сериализатор для личной страницы пользователя."""
-
-#     class Meta(UserSerializer.Meta):
-#         read_only_fields = ('role', )
-
-
 class SignUpSerializer(serializers.Serializer):
     """Регистрация нового пользователя."""
 
@@ -44,7 +37,8 @@ class SignUpSerializer(serializers.Serializer):
     validators = [
         CorrectUsernameValidator(
             username_field='username',
-            forbidden_names=['me', 'Me'],
+            forbidden_names=['me', 'Me', 'ME', 'mE'],
+            ignore_case=False,
         ),
     ]
 
