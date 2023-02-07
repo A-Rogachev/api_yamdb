@@ -1,9 +1,10 @@
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework.fields import CharField, EmailField
 
 from .validators import CorrectUsernameValidator
-from reviews.models import (LIMIT_USERNAME_LENGTH, Category, Comment, Genre,
-                            Review, Title, User)
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -31,8 +32,14 @@ class UserProfileSerializer(UserSerializer):
 class SignUpSerializer(serializers.Serializer):
     """Регистрация нового пользователя."""
 
-    username = CharField(max_length=LIMIT_USERNAME_LENGTH, required=True)
-    email = EmailField(max_length=254, required=True)
+    username = CharField(
+        max_length=settings.LIMIT_USERNAME_LENGTH,
+        required=True,
+    )
+    email = EmailField(
+        max_length=settings.LIMIT_USER_EMAIL_LENGTH,
+        required=True,
+    )
 
     validators = [
         CorrectUsernameValidator(
@@ -45,7 +52,10 @@ class SignUpSerializer(serializers.Serializer):
 class TokenSerializer(serializers.Serializer):
     """Получение JWT-токена в обмен на username и confirmation code."""
 
-    username = CharField(max_length=LIMIT_USERNAME_LENGTH, required=True)
+    username = CharField(
+        max_length=settings.LIMIT_USERNAME_LENGTH,
+        required=True,
+    )
     confirmation_code = CharField(required=True)
 
 

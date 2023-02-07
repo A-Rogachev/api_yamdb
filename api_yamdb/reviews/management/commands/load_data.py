@@ -5,7 +5,8 @@ from typing import Dict
 from django.conf import settings
 from django.core.management import BaseCommand
 from django.db.models import Model
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.models import User
 
 DATA_DIRECTORY: str = settings.DATA_FILE_PATH
 os.chdir(DATA_DIRECTORY)

@@ -1,8 +1,6 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-
-LIMIT_USERNAME_LENGTH: int = 150
 
 
 class User(AbstractUser):
@@ -17,17 +15,17 @@ class User(AbstractUser):
 
     bio = models.TextField(
         'Инф-ия о пользователе',
-        max_length=254,
+        max_length=settings.LIMIT_USER_BIO_LENGTH,
         blank=True,
     )
     email = models.EmailField(
         'Электронная почта',
-        max_length=254,
+        max_length=settings.LIMIT_USER_EMAIL_LENGTH,
         unique=True,
     )
     role = models.CharField(
         'Статус (роль) пользователя',
-        max_length=25,
+        max_length=settings.LIMIT_USER_ROLE_LENTGH,
         choices=UserRoles.choices,
         default=UserRoles.USER,
     )
@@ -37,19 +35,16 @@ class User(AbstractUser):
         """Пользователь имеет права администратора."""
         return (
             self.role == self.UserRoles.ADMIN
-            or self.is_staff
             or self.is_superuser
         )
 
     @property
     def is_moderator(self):
         """Пользователь имеет права модератора."""
-        return self.role == self.UserRoles.MODERATOR
-
-    @property
-    def is_user(self):
-        """Пользователь является обычным пользователем."""
-        return self.role == self.UserRoles.USER
+        return (
+            self.role == self.UserRoles.MODERATOR
+            or self.is_staff
+        )
 
     class Meta:
         verbose_name = 'Пользователь'

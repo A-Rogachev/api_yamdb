@@ -29,7 +29,6 @@ class IsAdmin(permissions.BasePermission):
         return (
             request.user.is_authenticated
             and request.user.is_admin
-            or request.user.is_staff
         )
 
 

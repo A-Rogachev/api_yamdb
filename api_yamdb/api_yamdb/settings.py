@@ -23,9 +23,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'users.apps.UsersConfig',
     'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
-    'users.apps.UsersConfig',
     'django_filters',
 ]
 
@@ -135,3 +135,10 @@ SIMPLE_JWT = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# DataBase Constants
+
+LIMIT_USERNAME_LENGTH: int = 150
+LIMIT_USER_BIO_LENGTH: int = 254
+LIMIT_USER_EMAIL_LENGTH: int = 254
+LIMIT_USER_ROLE_LENTGH: int = 25
