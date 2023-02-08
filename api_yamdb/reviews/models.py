@@ -7,7 +7,7 @@ from .validators import validate_year
 User = get_user_model()
 
 
-class UnitedGenreCategory(models.Model):  # Изменения
+class UnitedGenreCategory(models.Model):
     """Добавляет поля для моделей Category и Genre."""
     name = models.CharField(
         'Название',
@@ -29,7 +29,7 @@ class UnitedGenreCategory(models.Model):  # Изменения
         return self.name
 
 
-class Category(UnitedGenreCategory):  # Изменения
+class Category(UnitedGenreCategory):
     """Модель категории произведения."""
 
     class Meta(UnitedGenreCategory.Meta):
@@ -37,7 +37,7 @@ class Category(UnitedGenreCategory):  # Изменения
         verbose_name_plural = 'Категории'
 
 
-class Genre(UnitedGenreCategory):  # Изменения
+class Genre(UnitedGenreCategory):
     """Модель жанра произведения."""
 
     class Meta(UnitedGenreCategory.Meta):
@@ -89,9 +89,13 @@ class BaseReviewsComments(models.Model):
     pub_date = models.DateTimeField(
         "Дата добавления", auto_now_add=True, db_index=True
     )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+    )
 
     class Meta:
         abstract = True
+        default_related_name = '%(model_name)ss'
 
 
 class Review(BaseReviewsComments):
@@ -111,9 +115,6 @@ class Review(BaseReviewsComments):
         GREAT = 9
         PERFECT = 10
 
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="reviews"
-    )
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name="reviews"
     )
@@ -135,9 +136,6 @@ class Review(BaseReviewsComments):
 class Comment(BaseReviewsComments):
     """Модель комментария для отзыва."""
 
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="comments"
-    )
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name="comments"
     )

@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
+
+from users.validators import validate_username_not_me
 
 
 class User(AbstractUser):
@@ -12,6 +15,20 @@ class User(AbstractUser):
         ADMIN = 'admin'
         MODERATOR = 'moderator'
         USER = 'user'
+
+    username = models.CharField(
+        max_length=settings.LIMIT_USERNAME_LENGTH,
+        null=False,
+        unique=True,
+        db_index=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[\w.@+-]+$',
+                message='Введите корректное имя пользователя!',
+            ),
+            validate_username_not_me,
+        ]
+    )
 
     bio = models.TextField(
         'Инф-ия о пользователе',
@@ -51,10 +68,10 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
         ordering = ('username', )
         constraints = [
-            models.CheckConstraint(
-                check=~models.Q(username__in=['me', 'ME', 'Me', 'mE']),
-                name='username_not_me'
-            ),
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username_email',
+            )
         ]
 
     def __str__(self) -> str:
