@@ -1,6 +1,6 @@
 from django.conf import settings
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
 from django.db import models
 
 from users.validators import validate_username_not_me
@@ -22,10 +22,7 @@ class User(AbstractUser):
         unique=True,
         db_index=True,
         validators=[
-            RegexValidator(
-                regex=r'^[\w.@+-]+$',
-                message='Введите корректное имя пользователя!',
-            ),
+            UnicodeUsernameValidator(),
             validate_username_not_me,
         ]
     )
